@@ -2,7 +2,6 @@
 #include <sstream>
 #include <vector>
 
-
 #define MAX_TASKS 26
 
 using namespace std;
@@ -147,7 +146,7 @@ int main() {
                     }
                 } else {
                     if (execTask->getId() != '.' 
-                        && (execTask->getAbsolutePeriod()-execTask->getPeriod()-1) == (t_i-1)) // Mesma tarefa, periodos diferentes
+                        && (execTask->getAbsolutePeriod()-execTask->getPeriod()) == (t_i)) // Mesma tarefa, periodos diferentes
                         cntxtSw++;
                 }
                 lastTask = execTask;
@@ -157,8 +156,6 @@ int main() {
         }
             cout << grade.str() << endl;
             cout << cntxtSw << " " << prmptns << endl << endl;
-        
     }
-
     return 0;
 }
