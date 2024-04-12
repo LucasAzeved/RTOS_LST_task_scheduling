@@ -84,9 +84,10 @@ unsigned getNextTask(Task* tasks[], int numTasks, unsigned t) {
     unsigned ix = numTasks;
     int tmp = 1024, slack = 2048;
 
-    cout << "getNxt: ";
+    // cout << "   getNxt: ";
     for (unsigned i = 0; i < numTasks; i++) {
-        cout << tasks[i]->getId() << " " << tasks[i]->getSlack(t) << " | ";
+        // cout << tasks[i]->getId() << " " << tasks[i]->getSlack(t) << " | ";
+        tasks[i]->update(t);
         if (tasks[i]->getRemainigComputing() > 0){
             slack = tasks[i]->getSlack(t);
             if (slack < tmp) {
@@ -95,8 +96,7 @@ unsigned getNextTask(Task* tasks[], int numTasks, unsigned t) {
             }
         }
     }
-
-    cout << " [" << tasks[ix]->getId() << " " << tasks[ix]->getSlack(t) << "]" << endl;
+    // cout << " [" << tasks[ix]->getId() << " " << tasks[ix]->getSlack(t) << "]" << endl;
     return ix;
 }
 
@@ -107,7 +107,6 @@ int main() {
     while (1) {
         cin >> numTasks >> t_sim; // N T
         if (numTasks == 0 || t_sim == 0) break;
-        cout << "N: " << numTasks << " T: " << t_sim << endl;
 
         // obtem parametros das tasks
         for (unsigned i = 0; i < numTasks; ++i) {
@@ -115,17 +114,18 @@ int main() {
             char id = 'A' + i;
             tasks[i] = new Task(id, c, p, d);
         }
-        for (unsigned i = 0; i < numTasks; ++i)
-           cout << tasks[i]->str() << endl;
-        
+       
         tasks[numTasks] = new Task();        
 
-        stringstream grade, preemptions;
+        stringstream grade;
+        stringstream preemptions;
+        preemptions << "Preempcoes: ";
+
         Task *execTask, *lastTask;
         unsigned nextTsk, prmptns = 0, cntxtSw = 0;
         for (unsigned t_i = 0; t_i < t_sim; t_i++) {
             nextTsk = getNextTask(tasks, numTasks, t_i);
-            cout << "t[" << t_i << "] "<< "Slack: " << tasks[nextTsk]->getSlack(t_i) << " - " << tasks[nextTsk]->str() << endl;
+            // cout << "t[" << t_i << "] "<< "Slack: " << tasks[nextTsk]->getSlack(t_i) << " - " << tasks[nextTsk]->str() << endl;
 
             if (nextTsk == numTasks) {
                 grade << tasks[numTasks]->compute(t_i);
@@ -142,14 +142,15 @@ int main() {
 
             if(t_i == 0) {
                 lastTask = execTask;
-                cntxtSw++;
+                cntxtSw++; // Contabiliza troca de contexto no inicio
             }
             else {
                 if (execTask->getId() != lastTask->getId()) { // Tarefas diferentes
                     cntxtSw++;
-                    if (lastTask->getRemainigComputing() != 0 || execTask->getId() == '.') { // Tarefa anterior foi preemptada, ou tarefa atual eh idle
+                    if ((lastTask->getRemainigComputing() != 0 && lastTask->getRemainigComputing() != lastTask->getComputing()) 
+                        || execTask->getId() == '.') { // Tarefa anterior foi preemptada, ou tarefa atual eh idle
                         prmptns++;
-                        preemptions << "t[" << t_i << "] ";
+                        preemptions << execTask->getId() << t_i << " | ";
                     }
                 } else {
                     if (execTask->getId() != '.' 
@@ -161,7 +162,8 @@ int main() {
         }
             cout << grade.str() << endl;
             cout << cntxtSw << " " << prmptns << endl << endl;
-            cout << preemptions.str() << endl;
+            
+            // cout << preemptions.str() << endl;
     }
     return 0;
 }
