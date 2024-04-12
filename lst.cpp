@@ -47,7 +47,7 @@ public:
     int getSlack(unsigned t) {
         update(t);
         if (c_rem == 0)
-            return -1;
+            return 1024;
         return d_abs - t - c_rem;
     }
     char compute(unsigned t) {
@@ -55,8 +55,9 @@ public:
         if(id == '.') 
             return '.';
         c_rem--;
-        if (t > d_abs)
+        if ((t+1) > d_abs){
             return tolower(id);
+        }
         return id;
     }
     void update(unsigned t) {
@@ -80,15 +81,22 @@ public:
 
 // Task* getNextTask(vector<Task>& tasks, int numTasks, unsigned t) {
 unsigned getNextTask(Task* tasks[], int numTasks, unsigned t) {
-    unsigned tmp = 1024, slack = 2048, ix = numTasks;
+    unsigned ix = numTasks;
+    int tmp = 1024, slack = 2048;
+
+    cout << "getNxt: ";
     for (unsigned i = 0; i < numTasks; i++) {
-        if (tasks[i]->getSlack(t) != -1)
+        cout << tasks[i]->getId() << " " << tasks[i]->getSlack(t) << " | ";
+        if (tasks[i]->getRemainigComputing() > 0){
             slack = tasks[i]->getSlack(t);
-        if (slack < tmp) {
-            tmp = slack;
-            ix = i;
+            if (slack < tmp) {
+                tmp = slack;
+                ix = i;
+            }
         }
     }
+
+    cout << " [" << tasks[ix]->getId() << " " << tasks[ix]->getSlack(t) << "]" << endl;
     return ix;
 }
 
@@ -99,7 +107,7 @@ int main() {
     while (1) {
         cin >> numTasks >> t_sim; // N T
         if (numTasks == 0 || t_sim == 0) break;
-        // cout << "N: " << numTasks << " T: " << t_sim << endl;
+        cout << "N: " << numTasks << " T: " << t_sim << endl;
 
         // obtem parametros das tasks
         for (unsigned i = 0; i < numTasks; ++i) {
@@ -107,30 +115,28 @@ int main() {
             char id = 'A' + i;
             tasks[i] = new Task(id, c, p, d);
         }
-        // for (unsigned i = 0; i < numTasks; ++i)
-        //    cout << tasks[i]->str() << endl;
+        for (unsigned i = 0; i < numTasks; ++i)
+           cout << tasks[i]->str() << endl;
         
         tasks[numTasks] = new Task();        
 
-        stringstream grade;
+        stringstream grade, preemptions;
         Task *execTask, *lastTask;
         unsigned nextTsk, prmptns = 0, cntxtSw = 0;
         for (unsigned t_i = 0; t_i < t_sim; t_i++) {
             nextTsk = getNextTask(tasks, numTasks, t_i);
-            // cout << "t[" << t_i << "] "<< "Slack: " << tasks[nextTsk]->getSlack(t_i) << " - " << tasks[nextTsk]->str() << endl;
+            cout << "t[" << t_i << "] "<< "Slack: " << tasks[nextTsk]->getSlack(t_i) << " - " << tasks[nextTsk]->str() << endl;
 
             if (nextTsk == numTasks) {
-                tasks[numTasks]->compute(t_i);
+                grade << tasks[numTasks]->compute(t_i);
                 execTask = tasks[numTasks];
             }
-            else {
-                for (unsigned j = 0; j < numTasks; j++){
-                    if (j == nextTsk) {
-                        tasks[j]->compute(t_i);
-                        execTask = tasks[j];
-                    } else {
-                        tasks[j]->update(t_i);
-                    }
+            for (unsigned j = 0; j < numTasks; j++){
+                if (j == nextTsk) {
+                    grade << tasks[j]->compute(t_i);
+                    execTask = tasks[j];
+                } else {
+                    tasks[j]->update(t_i);
                 }
             }
 
@@ -143,6 +149,7 @@ int main() {
                     cntxtSw++;
                     if (lastTask->getRemainigComputing() != 0 || execTask->getId() == '.') { // Tarefa anterior foi preemptada, ou tarefa atual eh idle
                         prmptns++;
+                        preemptions << "t[" << t_i << "] ";
                     }
                 } else {
                     if (execTask->getId() != '.' 
@@ -151,11 +158,10 @@ int main() {
                 }
                 lastTask = execTask;
             }
-            
-            grade << execTask->getId();
         }
             cout << grade.str() << endl;
             cout << cntxtSw << " " << prmptns << endl << endl;
+            cout << preemptions.str() << endl;
     }
     return 0;
 }
