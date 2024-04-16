@@ -123,17 +123,21 @@ int main() {
 
         Task *execTask, *lastTask;
         unsigned nextTsk, prmptns = 0, cntxtSw = 0;
-        for (unsigned t_i = 0; t_i < t_sim; t_i++) {
+        for (unsigned t_i = 0; t_i < (t_sim+1); t_i++) {
             nextTsk = getNextTask(tasks, numTasks, t_i);
             // cout << "t[" << t_i << "] "<< "Slack: " << tasks[nextTsk]->getSlack(t_i) << " - " << tasks[nextTsk]->str() << endl;
 
             if (nextTsk == numTasks) {
-                grade << tasks[numTasks]->compute(t_i);
+                if (t_i != t_sim) {
+                    grade << tasks[numTasks]->compute(t_i);
+                }
                 execTask = tasks[numTasks];
             }
             for (unsigned j = 0; j < numTasks; j++){
                 if (j == nextTsk) {
-                    grade << tasks[j]->compute(t_i);
+                    if (t_i != t_sim) {
+                        grade << tasks[j]->compute(t_i);
+                    }
                     execTask = tasks[j];
                 } else {
                     tasks[j]->update(t_i);
@@ -142,14 +146,16 @@ int main() {
 
             if(t_i == 0) {
                 lastTask = execTask;
-                cntxtSw++; // Contabiliza troca de contexto no inicio
+                // cntxtSw++; // Contabiliza troca de contexto no inicio
             }
             else {
                 if (execTask->getId() != lastTask->getId()) { // Tarefas diferentes
                     cntxtSw++;
                     if ((lastTask->getRemainigComputing() != 0 && lastTask->getRemainigComputing() != lastTask->getComputing()) 
                         || execTask->getId() == '.') { // Tarefa anterior foi preemptada, ou tarefa atual eh idle
-                        prmptns++;
+                        if (execTask->getId() == '.' && (t_i == t_sim)) {}
+                        else
+                            prmptns++;
                         preemptions << execTask->getId() << t_i << " | ";
                     }
                 } else {
