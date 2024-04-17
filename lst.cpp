@@ -146,7 +146,6 @@ int main() {
 
             if(t_i == 0) {
                 lastTask = execTask;
-                // cntxtSw++; // Contabiliza troca de contexto no inicio
             }
             else {
                 if (execTask->getId() != lastTask->getId()) { // Tarefas diferentes
@@ -163,13 +162,6 @@ int main() {
                             preemptions << execTask->getId() << t_i << " | ";
                         }
                     }
-                    // if ((lastTask->getRemainigComputing() != 0 && lastTask->getRemainigComputing() != lastTask->getComputing()) 
-                    //     || execTask->getId() == '.') { // Tarefa anterior foi preemptada, ou tarefa atual eh idle
-                    //     if (execTask->getId() == '.' && (t_i == t_sim)) {}
-                    //     else
-                    //         prmptns++;
-                    //     preemptions << execTask->getId() << t_i << " | ";
-                    // }
                 } else {
                     if (execTask->getId() != '.' 
                         && (execTask->getAbsolutePeriod()-execTask->getPeriod()) == (t_i)) // Mesma tarefa, periodos diferentes
